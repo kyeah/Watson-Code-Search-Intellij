@@ -3,36 +3,30 @@ import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowFactory;
 import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentFactory;
-import org.apache.http.HttpEntity;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.entity.UrlEncodedFormEntity;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.impl.client.HttpClients;
-import org.apache.http.message.BasicNameValuePair;
 
 import javax.swing.*;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
+import javax.swing.text.Document;
+import javax.swing.text.html.HTMLEditorKit;
+import javax.swing.text.html.StyleSheet;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Vector;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
-/**
- * Created by IntelliJ IDEA.
- * User: Alexey.Chursin
- * Date: Aug 25, 2010
- * Time: 2:09:00 PM
- */
 public class CodeSearchTWFactory implements ToolWindowFactory, KeyListener {
 
-    private JLabel title;
-    private JTextPane text;
+    private JTextPane textPane;
     private JPanel panel;
     private JTextField questionField;
+    private JList answersList;
     private ToolWindow myToolWindow;
+    private HTMLEditorKit kit;
+
+    private Vector<String> answers = new Vector<String>();
+    ExecutorService executor = Executors.newFixedThreadPool(1);
 
     public CodeSearchTWFactory() {
         questionField.addKeyListener(this);
@@ -41,10 +35,36 @@ public class CodeSearchTWFactory implements ToolWindowFactory, KeyListener {
     // Create the tool window content.
     public void createToolWindowContent(Project project, ToolWindow toolWindow) {
         myToolWindow = toolWindow;
-        text.setText("TESTING");
+        toolWindow.setTitle("Project Atlas");
+
+        // TODO: Modify textPane Document to wrap text
+
+        // add a HTMLEditorKit to the text pane
+        kit = new HTMLEditorKit();
+        textPane.setEditorKit(kit);
+
+        // add some styles to the html
+        StyleSheet styleSheet = kit.getStyleSheet();
+        styleSheet.addRule("h1 {color: blue;}");
+        styleSheet.addRule("h2 {color: #ff0000;}");
+        styleSheet.addRule("p {color: #DEDEDE; font-size:13pt;}");
+        styleSheet.addRule("pre {font : 10px monaco; color : black; background-color : #fafafa; }");
+
+        Document doc = kit.createDefaultDocument();
+        textPane.setDocument(doc);
+        textPane.setText("Enter a question to search Atlas documentation.");
+
         ContentFactory contentFactory = ContentFactory.SERVICE.getInstance();
         Content content = contentFactory.createContent(panel, "", false);
         toolWindow.getContentManager().addContent(content);
+
+        answersList.setListData(answers);
+        answersList.addListSelectionListener(new ListSelectionListener() {
+            @Override
+            public void valueChanged(ListSelectionEvent listSelectionEvent) {
+                selectAnswer(answersList.getSelectedIndex());
+            }
+        });
     }
 
     @Override
@@ -59,46 +79,22 @@ public class CodeSearchTWFactory implements ToolWindowFactory, KeyListener {
 
     public void keyReleased(KeyEvent e) {
         if (e.getKeyCode() == KeyEvent.VK_ENTER) {
-            requestAnswerPost(questionField.getText());
+            executor.submit(new WatsonRequest(this, questionField.getText()));
         }
     }
 
-    public boolean requestAnswerPost(String question) {
-        final HttpClient httpclient = HttpClients.createDefault();
-        final HttpPost httppost = new HttpPost("http://localhost:5000/submit");
-
-        // Request parameters and other properties.
-        final List<BasicNameValuePair> params = new ArrayList<>(2);
-        params.add(new BasicNameValuePair("question", question));
-        params.add(new BasicNameValuePair("json", "false"));
-
-        try {
-            httppost.setEntity(new UrlEncodedFormEntity(params, "UTF-8"));
-
-            //Execute and return the response
-            final HttpEntity entity = httpclient.execute(httppost).getEntity();
-
-            if (entity != null) {
-                try (InputStream instream = entity.getContent()) {
-                    final BufferedReader reader = new BufferedReader(new InputStreamReader(instream));
-                    String line;
-                    final StringBuilder builder = new StringBuilder();
-                    while ((line = reader.readLine()) != null) {
-                        builder.append(line);
-                    }
-
-                    System.out.println(builder.toString());
-                    text.setContentType("text/html");
-                    text.setText(builder.toString());
-                    return true;
-                }
-            }
-        } catch (IOException e) {
-            System.out.println("Failed to get answer for question " + question);
-            System.out.println(e.getMessage());
-        }
-
-        return false;
+    public void setAnswers(Vector<String> newAnswers, Vector<String> shortAnswers) {
+        answers = newAnswers;
+        answersList.setListData(shortAnswers);
+        selectAnswer(0);
     }
 
+    private void selectAnswer(int index) {
+        if (index < 0 || index >= answers.size()) {
+            return;
+        }
+
+        textPane.setContentType("text/html");
+        textPane.setText(answers.get(index));
+    }
 }
