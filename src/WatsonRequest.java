@@ -43,7 +43,7 @@ public class WatsonRequest extends SwingWorker<WatsonRequest.Response, Void> {
     @Override
     protected Response doInBackground() throws Exception {
         final HttpClient httpclient = HttpClients.createDefault();
-        final HttpPost httppost = new HttpPost("http://localhost:5000/submit");
+        final HttpPost httppost = new HttpPost("http://codesearchapp.herokuapp.com/submit");
 
         // Request parameters and other properties.
         final List<BasicNameValuePair> params = new ArrayList<>(2);
