@@ -28,7 +28,9 @@
         <constraints>
           <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="7" hsize-policy="7" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
         </constraints>
-        <properties/>
+        <properties>
+          <horizontalScrollBarPolicy value="31"/>
+        </properties>
         <border type="none"/>
         <children>
           <component id="677f0" class="javax.swing.JTextPane" binding="textPane">
@@ -37,6 +39,7 @@
               <background color="-13290195"/>
               <disabledTextColor color="-11843757"/>
               <dragEnabled value="true"/>
+              <editable value="false"/>
               <font name="Ubuntu Medium" size="8"/>
               <foreground color="-1"/>
               <margin top="10" left="10" bottom="10" right="10"/>

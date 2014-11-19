@@ -40,7 +40,7 @@ public class CodeSearchTWFactory implements ToolWindowFactory, KeyListener {
         // TODO: Modify textPane Document to wrap text
 
         // add a HTMLEditorKit to the text pane
-        kit = new HTMLEditorKit();
+        kit = new HTMLWrappingEditorKit();
         textPane.setEditorKit(kit);
 
         // add some styles to the html
