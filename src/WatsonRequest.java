@@ -74,9 +74,9 @@ public class WatsonRequest extends SwingWorker<WatsonRequest.Response, Void> {
                         String answer = result.get("answer").toString();
                         answer = answer.replace("\\n", "");
                         answers.add(answer);
-
-                        // TODO: Replace this with an actual safe html extractor
-                        shortAnswers.add("[" + result.get("confidence").toString() + "%] " + answer.substring(0, 200).replaceAll("\\<[^>]*>", ""));
+                        // TODO: Replace this with an actual safe html extractor, fix code block spacing
+                        int length = Math.min(answer.length(), 200);
+                        shortAnswers.add("[" + result.get("confidence").toString() + "%] " + answer.substring(0, length).replaceAll("\\<[^>]*>", ""));
                     }
                 }
             }
