@@ -69,7 +69,7 @@ public class CodeSearchTWFactory implements ToolWindowFactory, KeyListener {
                             System.out.println(item);
                             if (item != null) {
                                 // TODO: Add ctrl+w keybind and multiple question dropdown (what is a _, how do i use a _, etc.)
-                                questionField.setText("What is a " + item "?");
+                                questionField.setText("What is a " + item + "?");
                                 askQuestion("What is a " + item + "?");
                             }
                         }
